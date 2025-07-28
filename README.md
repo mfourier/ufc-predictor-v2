@@ -1,5 +1,5 @@
 <h1 align="center">
-  🥋 UFC Fight Predictor
+  🥋 UFC Fight Predictor v2
   <img src="img/ufc_logo.png" width="70" style="vertical-align: middle; margin-left: 10px;" />
 </h1>
 
@@ -63,17 +63,12 @@ Each row represents a single bout with detailed per-fighter statistics, performa
 The modeling pipeline is structured into three interconnected stages, designed to maximize predictive performance while ensuring interpretability and robustness, all preprocessing, feature engineering, and data splitting is handled via the modular UFCData class, ensuring consistent transformations across training and evaluation. All models are wrapped and evaluated through the UFCModel class.
 
 1. **🔧 Feature Engineering**
-   - Fighter data is transformed into **relative differences** between Blue and Red fighters, capturing key attributes such as height, reach, age, striking metrics, grappling performance, and win streaks.
-   - Categorical variables (e.g., stance, fighting style, weight class) are one-hot encoded — binary categories use compact encoding, while multiclass variables retain full dummy representations.
-   - Numerical features are standardized using scalers fitted exclusively on the training set to prevent data leakage.
-   - Additional engineered features capture recent activity patterns, such as experience-per-age ratio (total rounds fought divided by age), win-by-decision rate difference, and win-by-finish rate difference.
-   - Feature selection is informed by correlation analysis, aiming to minimize redundancy while preserving predictive signal.
+
    - A synthetic random noise feature (`Random_Noise`) is introduced as a baseline to assess feature importance. Different combinations were explored until the random column gained prominence, guiding the final selection. This iterative process resulted in a feature set that balances complexity, interpretability, and predictive power.
 
 2. **🤖 Model Training**
-   - A diverse suite of machine learning models is trained, combining **classical algorithms**, **boosted ensemble methods**, and **deep learning architectures**.
+
    - The task is framed as a binary classification problem, with a baseline distribution of approximately 58% red corner wins, reflecting historical outcome imbalance.
-   - Hyperparameter tuning is systematically conducted in the notebook `04-training.ipynb` using `GridSearchCV`, with detailed parameter grids defined for each model. This exploration includes models such as XGBoost, SVM, Random Forest, AdaBoost, and Neural Networks, optimizing performance across algorithmic families.
 
 3. **📊 Evaluation**
    - Model performance is assessed using a comprehensive set of metrics, computed via the modular `metrics.py` implementation:
@@ -144,7 +139,7 @@ You can interact with UFC Fight Predictor v2 in two ways:
 1. **Clone the repository**
 
 ```bash
-git clone https://github.com/mfourier/ufc-predictor.git
+git clone https://github.com/mfourier/ufc-predictor-v2.git
 cd ufc-predictor
 ```
 
@@ -205,7 +200,6 @@ Comprehensive project documentation is available in the `docs/` folder, covering
 
 - **Model overviews and mathematical formulations**: Detailed descriptions of each algorithm, including underlying principles and expected behavior.
 - **Key assumptions and limitations**: Insights into when and why each model performs best, as well as potential pitfalls.
-- **Hyperparameter grids**: Full parameter configurations used for tuning with `GridSearchCV`, enabling reproducibility and extension.
 - **Training logs**: A CSV file automatically generated during experiments, storing key metrics, best hyperparameters, and training durations for each model, enabling result tracking and comparison across runs.
 - **Usage guides**: Step-by-step instructions on running the notebooks, customizing experiments, and interpreting results.
 
