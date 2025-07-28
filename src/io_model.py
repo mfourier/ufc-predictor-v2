@@ -3,8 +3,6 @@
 import os
 import pickle
 import logging
-from src.config import pretty_model_name
-from src.helpers import get_pretty_model_name
 from src.model import UFCModel
 
 # Logger setup

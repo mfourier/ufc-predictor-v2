@@ -3,7 +3,6 @@
 import pandas as pd
 import numpy as np
 import os
-from src.config import colors, pretty_names, default_params
 from datetime import datetime
 from rich import print
 from rich.console import Console

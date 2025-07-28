@@ -2,7 +2,6 @@
 
 import pandas as pd
 import numpy as np
-from src.config import pretty_model_name
 from src.io_model import load_model, load_all_models
 from src.model import UFCModel
 from src.metrics import evaluate_metrics, evaluate_cm
