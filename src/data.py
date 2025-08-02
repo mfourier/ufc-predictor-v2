@@ -346,15 +346,16 @@ class UFCData:
         features_per_fig: int = 12,  
         figsize: tuple = (20, 10), 
         save_file: bool = False,
-        suptitle: str = None
+        suptitle: str = None,
+        numeric_only: bool = False   # <-- nuevo parámetro
         ) -> None:
         """
-        Plots feature distributions as histograms (numerical) or countplots (categorical/codified)
-        for either raw or processed training data. Splits features into multiple figures if needed.
-    
+        Plots feature distributions as histograms (numerical) or countplots (categorical/codified).
+        
         Args:
-            features_per_fig (int): Number of features per figure page.
-            ... (otros args)
+            processed (bool): Use processed data if True, else raw.
+            numeric_only (bool): If True, only numeric features are plotted.
+            ...
         """
     
         if processed:
@@ -366,8 +367,17 @@ class UFCData:
             df = self._X_train.copy()
             title_prefix = "Raw"
     
-        feature_list = df.columns.tolist()
+        # 🔑 Filtrar columnas
+        if numeric_only:
+            feature_list = [col for col in df.columns if pd.api.types.is_numeric_dtype(df[col])]
+        else:
+            feature_list = df.columns.tolist()
+    
         n_features = len(feature_list)
+        if n_features == 0:
+            print("⚠️ No numerical features found to plot." if numeric_only else "⚠️ No features found.")
+            return
+    
         n_pages = math.ceil(n_features / features_per_fig)
         for page in range(n_pages):
             plt.figure(figsize=figsize)
@@ -377,10 +387,12 @@ class UFCData:
             cols_this_page = feature_list[start:end]
             ncols = min(4, len(cols_this_page))
             nrows = math.ceil(len(cols_this_page) / ncols)
+    
             for idx, col in enumerate(cols_this_page, 1):
                 plt.subplot(nrows, ncols, idx)
                 col_data = df[col]
                 unique_vals = col_data.nunique(dropna=True)
+    
                 if pd.api.types.is_numeric_dtype(col_data):
                     if unique_vals <= max_unique:
                         sns.countplot(x=col_data, hue=col_data, palette="crest", legend=False)
@@ -388,10 +400,12 @@ class UFCData:
                         sns.histplot(col_data, kde=True, bins=bins, color='dodgerblue')
                 else:
                     sns.countplot(x=col_data, hue=col_data, palette="crest", legend=False)
+    
                 plt.title(col, fontsize=11)
                 plt.xlabel("")
                 plt.ylabel("Count")
                 plt.xticks(rotation=35, ha='right', fontsize=9)
+    
             plt.tight_layout()
             page_title = suptitle or f"{title_prefix} Feature Distributions (Train Set)"
             if n_pages > 1:
@@ -399,6 +413,7 @@ class UFCData:
             plt.suptitle(page_title, fontsize=18, y=1.04, weight='bold')
             plt.subplots_adjust(top=0.9, hspace=0.35)
             plt.tight_layout()
+    
             if save_file:
                 img_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../img/"))
                 os.makedirs(img_dir, exist_ok=True)
@@ -408,6 +423,7 @@ class UFCData:
                 plt.savefig(save_path, dpi=300, bbox_inches='tight')
                 print(f"Plot saved to: {save_path}")
             plt.show()
+
 
 
     def plot_label_distribution(self, dataset: Literal['train', 'test', 'full'] = 'train', save_file: bool = False) -> None:

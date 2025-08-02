@@ -3,7 +3,6 @@
 import os
 import pickle
 import logging
-from src.model import UFCModel
 
 # Logger setup
 logger = logging.getLogger(__name__)
