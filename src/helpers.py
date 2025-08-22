@@ -4,6 +4,10 @@ from typing import Iterable, List, Optional, Pattern, Set, Union, Tuple
 import re
 from src.data import UFCData
 from pandas.api.types import is_numeric_dtype
+import logging
+
+# Logger setup
+logger = logging.getLogger(__name__)
 
 def prepare_modeling_df(
     ufc_df: pd.DataFrame,
