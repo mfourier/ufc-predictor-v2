@@ -9,11 +9,12 @@
 </p>
 
 ## 📝 Project Summary
-UFC Fight Predictor is a machine learning pipeline developed with AutoGluon to predict the outcomes of UFC fights by combining fighter statistics, performance history, and betting market signals.
+UFC Fight Predictor is a machine learning pipeline built with AutoGluon to predict UFC fight outcomes.  
+It leverages fighter statistics and historical performance features, achieving up to **64% accuracy**, even without using betting odds.
 
 ---
 
-> Check UFC Fight Predictor v1.0.
+> Check [UFC Fight Predictor v1](https://github.com/mfourier/ufc-predictor)
 
 <p align="center">
   <img src="img/ufc_sh.gif" alt="UFC CLI Demo" width="85%" />
@@ -23,12 +24,13 @@ UFC Fight Predictor is a machine learning pipeline developed with AutoGluon to p
 
 ## 🎯 Objective
 
-It builds upon [v1](https://github.com/mfourier/ufc-predictor) by incorporating:
+Compared to [v1](https://github.com/mfourier/ufc-predictor), this version incorporates:
 - A richer **historical feature engine** (`build_history_features`) with EMA, last-N, and career averages.
 - A robust **data preparation interface** (`prepare_modeling_df`) for flexible column management and difference features.
 - A dedicated **UFCData** class to handle splits, scaling, encoding, and correlation analysis.  
 
-This version leverages **AutoGluon** for automated model selection and hyperparameter tuning, allowing for stronger baseline performance compared to the v1 models.
+It leverages **AutoGluon** for automated model selection and hyperparameter tuning, enabling stronger baseline performance.
+
 
 ---
 
@@ -36,7 +38,7 @@ This version leverages **AutoGluon** for automated model selection and hyperpara
 
 ### v2 Dataset (Current)
 
-The updated dataset includes **over 8,000 UFC fights (2010–2025)** sourced from UFCStats.  
+The updated dataset includes **over 8,000 UFC fights** sourced from UFCStats.  
 Each row represents a single bout with detailed per-fighter statistics, performance metrics, and fight context.
 
 #### 🔑 Feature Categories
@@ -45,7 +47,7 @@ Each row represents a single bout with detailed per-fighter statistics, performa
   - Strikes landed/absorbed per minute.  
   - Accuracy & defense rates (striking, takedowns, subs).  
   - Last-*N*, career, and EMA averages.  
-- 🥋 **Fight Context**: division, time since last fight, time since debut, etc. 
+- 🥋 **Fight Context**: division, days since last fight, days since debut, etc. 
 - ⚡ **Target Variable**  
   - **0** → Red Corner Win  
   - **1** → Blue Corner Win  
@@ -78,7 +80,7 @@ You can interact with UFC Fight Predictor v2 in two ways:
 
 ```bash
 git clone https://github.com/mfourier/ufc-predictor-v2.git
-cd ufc-predictor
+cd ufc-predictor-v2
 ```
 
 2. **Install dependencies**
@@ -131,7 +133,7 @@ Special thanks to **Aditya Ratan** for scraping [UFCStats](http://ufcstats.com/)
 
 His contribution greatly facilitated the data collection process for this project.
 
-## Disclaimer
+## ⚠️ Disclaimer
 
 This project is an independent work for academic and research purposes.  
 It is not affiliated with, endorsed by, or sponsored by UFC, Zuffa LLC, or any related entity.  
