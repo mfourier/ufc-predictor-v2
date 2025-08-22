@@ -61,9 +61,6 @@ class UFCData:
         if 'label' not in df.columns:
             raise ValueError("DataFrame must contain a 'label' column.")
 
-        if validate_nan and df.isnull().any().any():
-            raise ValueError("DataFrame contains missing values. Please clean the data.")
-
         self.raw_df: pd.DataFrame = df.reset_index(drop=True)
         self.test_size = test_size
 
@@ -110,59 +107,6 @@ class UFCData:
         )
         self._X_test_processed[self.numerical_columns] = self._scaler.transform(
             self._X_test[self.numerical_columns]
-        )
-
-    def encode(self) -> None:
-        """
-        Encode categorical features using pandas' get_dummies.
-    
-        - Binary categorical columns are encoded with `drop_first=True` to avoid multicollinearity.
-        - Multiclass categorical columns are encoded with `drop_first=False` to retain all information.
-        - All encoded features are aligned between train and test to ensure consistent columns.
-        - Numerical features are preserved and concatenated with the encoded categorical features.
-    
-        After calling this method:
-            - `self._X_train_processed` and `self._X_test_processed` will contain the fully encoded feature matrices,
-              ready for model training and evaluation.
-    
-        Returns:
-            None
-        """
-        X_train_base = self._X_train_processed if self._X_train_processed is not None else self._X_train.copy()
-        X_test_base = self._X_test_processed if self._X_test_processed is not None else self._X_test.copy()
-    
-        # Handle binary columns
-        if self.binary_columns:
-            X_train_bin = pd.get_dummies(
-                X_train_base[self.binary_columns], drop_first=True
-            ).astype(int)
-            X_test_bin = pd.get_dummies(
-                X_test_base[self.binary_columns], drop_first=True
-            ).astype(int)
-            X_test_bin = X_test_bin.reindex(columns=X_train_bin.columns, fill_value=0)
-        else:
-            X_train_bin = pd.DataFrame(index=X_train_base.index)
-            X_test_bin = pd.DataFrame(index=X_test_base.index)
-    
-        # Handle multiclass columns
-        if self.multiclass_columns:
-            X_train_multi = pd.get_dummies(
-                X_train_base[self.multiclass_columns], drop_first=False
-            ).astype(int)
-            X_test_multi = pd.get_dummies(
-                X_test_base[self.multiclass_columns], drop_first=False
-            ).astype(int)
-            X_test_multi = X_test_multi.reindex(columns=X_train_multi.columns, fill_value=0)
-        else:
-            X_train_multi = pd.DataFrame(index=X_train_base.index)
-            X_test_multi = pd.DataFrame(index=X_test_base.index)
-    
-        # Concatenate all components
-        self._X_train_processed = pd.concat(
-            [X_train_bin, X_train_multi, X_train_base[self.numerical_columns]], axis=1
-        )
-        self._X_test_processed = pd.concat(
-            [X_test_bin, X_test_multi, X_test_base[self.numerical_columns]], axis=1
         )
 
 
@@ -366,8 +310,7 @@ class UFCData:
         else:
             df = self._X_train.copy()
             title_prefix = "Raw"
-    
-        # 🔑 Filtrar columnas
+
         if numeric_only:
             feature_list = [col for col in df.columns if pd.api.types.is_numeric_dtype(df[col])]
         else:
@@ -375,7 +318,7 @@ class UFCData:
     
         n_features = len(feature_list)
         if n_features == 0:
-            print("⚠️ No numerical features found to plot." if numeric_only else "⚠️ No features found.")
+            print("No numerical features found to plot." if numeric_only else "No features found.")
             return
     
         n_pages = math.ceil(n_features / features_per_fig)
@@ -423,7 +366,6 @@ class UFCData:
                 plt.savefig(save_path, dpi=300, bbox_inches='tight')
                 print(f"Plot saved to: {save_path}")
             plt.show()
-
 
 
     def plot_label_distribution(self, dataset: Literal['train', 'test', 'full'] = 'train', save_file: bool = False) -> None:
@@ -589,20 +531,22 @@ class UFCData:
 
     def __repr__(self) -> str:
         """
-        Return a detailed string summary of the UFCData object.
-
-        Includes:
-            - Sample size and split proportions
-            - Feature types (numerical, categorical, binary, multiclass)
-            - Class balance
-            - Presence of missing values
-            - Feature summary statistics (train set)
-            - Preprocessing status
-
-        This is automatically shown in notebooks or when printing the object.
+        Return a detailed string summary of the UFCData object, including
+        categorical feature names (all, binary, and multiclass).
         """
+        import textwrap
+    
+        def _fmt(cols, indent=6, width=100):
+            if cols is None or len(cols) == 0:
+                return " " * indent + "None"
+            cols = [str(c) for c in cols]
+            s = ", ".join(cols)
+            return textwrap.fill(
+                s, width=width, initial_indent=" " * indent, subsequent_indent=" " * indent
+            )
+    
         lines = []
-
+    
         # General
         n_total = self.raw_df.shape[0]
         n_train = self._X_train.shape[0]
@@ -613,19 +557,35 @@ class UFCData:
         n_bin = len(self.binary_columns)
         n_multi = len(self.multiclass_columns)
         n_missing = self.raw_df.isnull().sum().sum()
-
+    
+        # Sort for stable, readable output
+        cat_cols = sorted(list(self.categorical_columns)) if self.categorical_columns is not None else []
+        bin_cols = sorted(list(self.binary_columns)) if self.binary_columns is not None else []
+        multi_cols = sorted(list(self.multiclass_columns)) if self.multiclass_columns is not None else []
+    
         lines.append("📊 UFC Dataset Summary")
         lines.append("-" * 40)
-        lines.append(f"🧪 Total samples      : {n_total}")
-        lines.append(f"🧪 Train/Test split  : {n_train} / {n_test}")
-        lines.append(f"🧪 Total features     : {n_features}")
+        lines.append(f"🧪 Total samples       : {n_total}")
+        lines.append(f"🧪 Train/Test split    : {n_train} / {n_test}")
+        lines.append(f"🧪 Total features      : {n_features}")
         lines.append("")
-        lines.append(f"🔢 Numerical features : {n_num}")
+        lines.append(f"🔢 Numerical features  : {n_num}")
         lines.append(f"🔠 Categorical features: {n_cat}")
-        lines.append(f"    - Binary          : {n_bin}")
-        lines.append(f"    - Multiclass      : {n_multi}")
+        lines.append(f"    - Binary           : {n_bin}")
+        lines.append(f"    - Multiclass       : {n_multi}")
         lines.append("")
-
+    
+        # NEW: Categorical names
+        lines.append("🔠 Categorical feature names (all):")
+        lines.append(_fmt(cat_cols))
+        lines.append("")
+        lines.append("   • Binary categorical features:")
+        lines.append(_fmt(bin_cols))
+        lines.append("")
+        lines.append("   • Multiclass categorical features:")
+        lines.append(_fmt(multi_cols))
+        lines.append("")
+    
         # Label distribution
         lines.append("🏷 Label distribution (raw):")
         label_counts = self._y.value_counts().sort_index()
@@ -633,26 +593,25 @@ class UFCData:
             pct = 100 * count / len(self._y)
             lines.append(f"   - Class {label}: {count} ({pct:.1f}%)")
         lines.append("")
-
+    
         # Missing values
         if n_missing > 0:
-            lines.append(f"⚠️ Missing values     : {n_missing} total")
+            lines.append(f"⚠️ Missing values      : {n_missing} total")
         else:
             lines.append("✅ No missing values detected")
-
+    
         # Feature stats (train)
         lines.append("\n📈 Feature summary statistics (train set):")
         desc = self._X_train.describe().T[["mean", "std", "min", "max"]]
         lines.append(desc.round(3).to_string())
-
+    
         # Preprocessing
         lines.append("\n⚙️ Preprocessing status:")
-        lines.append(f"   - Standardized?    : {'✅' if self._X_train_processed is not None else '❌'}")
-        lines.append(f"   - Encoded?         : {'✅' if self._X_train_processed is not None and any(col not in self.numerical_columns for col in self._X_train_processed.columns) else '❌'}")
+        lines.append(f"   - Standardized?     : {'✅' if self._X_train_processed is not None else '❌'}")
         lines.append(f"   - Correlation cached (raw)      : {'✅' if self._corr is not None else '❌'}")
         lines.append(f"   - Correlation cached (processed): {'✅' if self._corr_processed is not None else '❌'}")
         lines.append("-" * 40)
-
+    
         return "\n".join(lines)
 
     def summary(self) -> None:
